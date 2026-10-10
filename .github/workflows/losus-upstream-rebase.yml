@@ -1,0 +1,180 @@
+# Rebase the Losus patch stack onto new Open WebUI release tags.
+#
+# Flow:  rebase  ->  verify (build + smoke test)  ->  promote (manual approval)
+#
+# One-time setup (see README in the CI kit):
+#   - secret LOSUS_BOT_TOKEN: GitHub App or fine-grained PAT with contents:write,
+#     allowed to force-push losus/main (bypass branch protection) and push tags
+#   - environment "fork-promotion" with required reviewers
+#   - disable upstream workflows in the fork: gh workflow disable <name>
+
+name: Losus upstream rebase
+
+on:
+  schedule:
+    - cron: '0 13 * * 1' # Mondays 07:00 America/Denver (MDT)
+  workflow_dispatch:
+    inputs:
+      target_tag:
+        description: 'Upstream tag to rebase onto (blank = newest stable release)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: losus-upstream-rebase
+  cancel-in-progress: false
+
+env:
+  FORK_BRANCH: losus/main
+  UPSTREAM_URL: https://github.com/open-webui/open-webui.git
+
+jobs:
+  rebase:
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.rebase.outputs.status }}
+      base: ${{ steps.rebase.outputs.base }}
+      target: ${{ steps.rebase.outputs.target }}
+      branch: ${{ steps.rebase.outputs.branch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FORK_BRANCH }}
+          fetch-depth: 0
+          token: ${{ secrets.LOSUS_BOT_TOKEN }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "losus-bot"
+          git config user.email "bot@losus.ai"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Restore saved conflict resolutions
+        run: scripts/losus/rerere-sync.sh pull
+
+      - name: Rebase onto upstream
+        id: rebase
+        env:
+          TARGET_TAG: ${{ inputs.target_tag }}
+        run: scripts/losus/rebase-upstream.sh "$TARGET_TAG"
+
+      - name: Write job summary
+        if: always()
+        run: |
+          if [ -f rebase-report.md ]; then cat rebase-report.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Check stack rules on the rebased branch
+        if: steps.rebase.outputs.status == 'clean'
+        env:
+          BRANCH: ${{ steps.rebase.outputs.branch }}
+        run: |
+          set -o pipefail
+          # --allow-dropped: commits upstream absorbed are warnings here; run stack.py sync before promoting
+          python3 scripts/losus/stack.py check --ref "$BRANCH" --allow-dropped --format md | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Push upgrade branch
+        if: steps.rebase.outputs.status == 'clean'
+        env:
+          BRANCH: ${{ steps.rebase.outputs.branch }}
+        run: git push --force-with-lease origin "$BRANCH"
+
+      - name: Upload report
+        if: steps.rebase.outputs.status == 'clean' || steps.rebase.outputs.status == 'conflict'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rebase-report
+          path: |
+            rebase-report.md
+            npm-lock.log
+          if-no-files-found: ignore
+
+      - name: Open or update conflict issue
+        if: steps.rebase.outputs.status == 'conflict'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ steps.rebase.outputs.target }}
+        run: |
+          gh label create upstream-rebase --color B60205 --force >/dev/null
+          title="Upstream rebase blocked: $TARGET"
+          num="$(gh issue list --state open --label upstream-rebase \
+                  --search "\"$title\" in:title" --json number -q '.[0].number')"
+          if [ -n "$num" ]; then
+            gh issue comment "$num" --body-file rebase-report.md
+          else
+            gh issue create --title "$title" --label upstream-rebase --body-file rebase-report.md
+          fi
+
+  verify:
+    needs: rebase
+    if: needs.rebase.outputs.status == 'clean'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.rebase.outputs.branch }}
+
+      - name: Build image
+        run: docker build --build-arg USE_SLIM=true -t losus-owui:ci .
+
+      - name: Check the Losus sidebar hook survived the rebase
+        run: |
+          docker run --rm --entrypoint sh losus-owui:ci -c \
+            "grep -rqs 'sidebar-losus' /app/build" \
+            || { echo "::error::Losus sidebar hook not found in the built frontend"; exit 1; }
+
+      - name: Smoke test /health
+        run: |
+          docker run -d --name owui -p 8080:8080 -e WEBUI_SECRET_KEY=ci-only losus-owui:ci
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/health | jq -e '.status == true' >/dev/null; then
+              echo "Healthy after $((i * 5))s"; exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::Open WebUI did not become healthy"
+          docker logs owui | tail -100
+          exit 1
+
+  promote:
+    needs: [rebase, verify]
+    runs-on: ubuntu-latest
+    environment: fork-promotion # required reviewers approve here
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.LOSUS_BOT_TOKEN }}
+
+      - name: Promote upgrade branch to losus/main and tag release
+        env:
+          BRANCH: ${{ needs.rebase.outputs.branch }}
+          TARGET: ${{ needs.rebase.outputs.target }}
+        run: |
+          git config user.name  "losus-bot"
+          git config user.email "bot@losus.ai"
+          git fetch origin "$BRANCH" "$FORK_BRANCH"
+
+          old="$(git rev-parse "origin/$FORK_BRANCH")"
+          new="$(git rev-parse "origin/$BRANCH")"
+
+          # Keep the previous stack reachable before rewriting history
+          git tag "archive/before-$TARGET" "$old"
+          git push origin "refs/tags/archive/before-$TARGET"
+
+          # Rebased history can't fast-forward, so replace the branch (guarded by lease)
+          git push --force-with-lease="$FORK_BRANCH:$old" origin "$new:refs/heads/$FORK_BRANCH"
+
+          n=1
+          while git ls-remote --exit-code --tags origin "refs/tags/$TARGET-losus.$n" >/dev/null; do n=$((n + 1)); done
+          git tag -a "$TARGET-losus.$n" "$new" -m "Losus Roster on Open WebUI $TARGET"
+          git push origin "$TARGET-losus.$n"
+          echo "Promoted $FORK_BRANCH to $TARGET-losus.$n" >> "$GITHUB_STEP_SUMMARY"
+
+          git push origin --delete "$BRANCH" || true
