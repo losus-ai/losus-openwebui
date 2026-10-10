@@ -55,6 +55,16 @@
         "scripts/losus/rerere-sync.sh",
         "scripts/losus/stack.py"
       ]
+    },
+    {
+      "subject": "losus: add Roster sidebar hook and @losus-ai/ui pin",
+      "purpose": "Mount the Losus Roster sidebar section: render LosusAgents from @losus-ai/ui in Sidebar.svelte inside a data-losus=\"sidebar-losus\" wrapper (the rebase verify marker) and pin @losus-ai/ui in package.json and the lockfile. On conflict keep upstream's Sidebar.svelte and re-add only the import and the wrapper.",
+      "upstreamable": false,
+      "paths": [
+        "package-lock.json",
+        "package.json",
+        "src/lib/components/layout/Sidebar.svelte"
+      ]
     }
   ]
 }
