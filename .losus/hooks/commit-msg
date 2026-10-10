@@ -1,0 +1,3 @@
+#!/bin/sh
+# Losus: every fork commit subject starts with "losus:"
+exec python3 scripts/losus/stack.py commitmsg "$1"

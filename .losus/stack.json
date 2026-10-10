@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "prefix": "losus:",
+  "max_commits": 5,
+  "max_added_lines": 400,
+  "budget_exclude": [
+    "package-lock.json",
+    ".losus/**",
+    "scripts/losus/**",
+    ".github/workflows/losus-*",
+    ".agents/skills/**",
+    ".claude/skills/**"
+  ],
+  "allowed_paths": [
+    ".losus/**",
+    "scripts/losus/**",
+    ".github/workflows/losus-*",
+    ".agents/skills/losus-*/**",
+    ".claude/skills/losus-*",
+    ".claude/skills/losus-*/**",
+    "LOSUS_FORK_NOTICE.md",
+    "package.json",
+    "package-lock.json",
+    "tailwind.config.js",
+    "src/lib/components/layout/Sidebar.svelte",
+    "src/lib/components/losus/**",
+    "backend/open_webui/main.py",
+    "backend/open_webui/routers/chats.py",
+    "backend/open_webui/utils/losus_guard.py"
+  ],
+  "denied_paths": [
+    "packages/**",
+    "roles/**",
+    "losus-roster/**",
+    "node_modules/**",
+    "**/losus_core/**",
+    "**/losus_runtime/**",
+    "**/losus_owui_bridge/**",
+    "**/losus_mcp_*/**",
+    "**/*.whl",
+    "**/losus-*.tgz"
+  ],
+  "commits": [
+    {
+      "subject": "losus: patch-stack tooling, hooks and CI",
+      "purpose": "Losus patch-stack tooling: hooks, stack manifest, stack-guard and upstream-rebase workflows, agent skill",
+      "upstreamable": false,
+      "paths": [
+        ".agents/skills/losus-fork-stack/SKILL.md",
+        ".github/workflows/losus-stack-guard.yml",
+        ".github/workflows/losus-upstream-rebase.yml",
+        ".losus/hooks/commit-msg",
+        ".losus/hooks/pre-commit",
+        "scripts/losus/rebase-upstream.sh",
+        "scripts/losus/rerere-sync.sh",
+        "scripts/losus/stack.py"
+      ]
+    }
+  ]
+}
