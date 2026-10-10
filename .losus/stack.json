@@ -65,6 +65,14 @@
         "package.json",
         "src/lib/components/layout/Sidebar.svelte"
       ]
+    },
+    {
+      "subject": "losus: raise the Node heap for the upstream image build in CI",
+      "purpose": "CI workaround: enable upstream's commented-out NODE_OPTIONS line at 6144 MB (with a grep guard) before the verify job's docker build, because the default ~4 GB Node heap runs out of memory in the frontend stage. Drop this commit if upstream raises the heap itself; if the guard fails after a rebase, check whether upstream changed that Dockerfile line.",
+      "upstreamable": false,
+      "paths": [
+        ".github/workflows/losus-upstream-rebase.yml"
+      ]
     }
   ]
 }
