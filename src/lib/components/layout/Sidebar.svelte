@@ -126,6 +126,7 @@
 	import ConfirmDialog from '../common/ConfirmDialog.svelte';
 	import MoreHorizontalIcon from './Sidebar/icons/MoreHorizontal.svelte';
 	import MobileSwipePanel from '../common/MobileSwipePanel.svelte';
+	import { LosusAgents } from '@losus-ai/ui';
 
 	const DEFAULT_PINNED_ITEMS = ['notes', 'workspace'];
 
@@ -1706,6 +1707,10 @@
 							/>
 						</SidebarSection>
 					{/if}
+
+					<div data-losus="sidebar-losus">
+						<LosusAgents />
+					</div>
 
 					<SidebarSection
 						id="sidebar-chats"
