@@ -13,6 +13,7 @@ Open Cowork UI is Losus AI's fork of Open WebUI. It adds a projects sidebar, an 
 - [0002. Projects extend upstream folders](adr/0002-projects-extend-upstream-folders.md)
 - [0003. Agent-limited projects are enforced on the server](adr/0003-agent-limited-projects-enforced-on-server.md)
 - [0004. Cowork API prefix and project-scoped intake keys](adr/0004-cowork-api-prefix-and-scoped-intake-keys.md)
+- [0005. Split into a thin `losus-openwebui` fork and a `losus-roster` package repo](adr/0005-split-into-losus-openwebui-fork-and-losus-roster.md) (Proposed, changes the repo names below)
 
 ## Specs
 

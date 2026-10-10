@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted. The repo and branch names, and where code lives, are changed by [0005](0005-split-into-losus-openwebui-fork-and-losus-roster.md) (Proposed).
 
 ## Context
 

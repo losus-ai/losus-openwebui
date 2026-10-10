@@ -13,6 +13,12 @@
 
 ## Next steps
 
+### Repo structure (ADR 0005)
+
+1. Read the Losus fork-stack kit in `LosusRoster` and answer the open questions in ADR 0005.
+2. Rename the GitHub repo `opencowork-ui` to `losus-openwebui` and the branch `cowork` to `losus/main`; create `losus-roster`.
+3. Move the docs to the repo the answers point to, and update the repo names and code locations in the specs and plans.
+
 ### Build phases
 
 1. Run the verification tasks in [build phases](build-phases.md) and record each result as confirmed or not reproduced.
