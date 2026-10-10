@@ -92,6 +92,7 @@
 	import CheckIcon from '../icons/Check.svelte';
 	import MoreHorizontalIcon from './Sidebar/icons/MoreHorizontal.svelte';
 	import MobileSwipePanel from '../common/MobileSwipePanel.svelte';
+	import { LosusAgents } from '@losus-ai/ui';
 
 	const BREAKPOINT = 768;
 	const DEFAULT_PINNED_ITEMS = ['notes', 'workspace'];
@@ -1412,6 +1413,10 @@
 							/>
 						</SidebarSection>
 					{/if}
+
+					<div data-losus="sidebar-losus">
+						<LosusAgents />
+					</div>
 
 					<SidebarSection
 						id="sidebar-chats"
