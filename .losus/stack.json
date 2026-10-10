@@ -73,6 +73,14 @@
       "paths": [
         ".github/workflows/losus-upstream-rebase.yml"
       ]
+    },
+    {
+      "subject": "losus: use the @losus-ai scope in the fork-stack skill example",
+      "purpose": "Documentation only: keep the fork-stack skill's example in step with the published package scope (@losus-ai/ui). Safe to drop or re-apply by hand on conflict; keep it identical to the losus-roster copy.",
+      "upstreamable": false,
+      "paths": [
+        ".agents/skills/losus-fork-stack/SKILL.md"
+      ]
     }
   ]
 }
