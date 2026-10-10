@@ -81,6 +81,18 @@
       "paths": [
         ".agents/skills/losus-fork-stack/SKILL.md"
       ]
+    },
+    {
+      "subject": "losus: bump @losus-ai/ui to 0.0.3, add the fork notice, Node 24 actions",
+      "purpose": "Keep the pinned @losus-ai/ui current (0.0.3: theme tokens and ThemeSettings), record the fork's identity and license position in LOSUS_FORK_NOTICE.md, and move the Losus workflows to Node 24 action versions. No product code; all behavior ships in the npm package.",
+      "upstreamable": false,
+      "paths": [
+        ".github/workflows/losus-stack-guard.yml",
+        ".github/workflows/losus-upstream-rebase.yml",
+        "LOSUS_FORK_NOTICE.md",
+        "package-lock.json",
+        "package.json"
+      ]
     }
   ]
 }
