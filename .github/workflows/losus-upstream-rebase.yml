@@ -120,6 +120,14 @@ jobs:
         with:
           ref: ${{ needs.rebase.outputs.branch }}
 
+      # Upstream's Dockerfile ships this line commented out. With the default ~4 GB Node heap,
+      # `npm run build` runs out of memory in the image build. Patch it here so the fork carries
+      # no Dockerfile edit. The grep fails the job if upstream changes the line.
+      - name: Raise the Node heap for the frontend build
+        run: |
+          grep -qx '# ENV NODE_OPTIONS="--max-old-space-size=4096"' Dockerfile
+          sed -i 's|^# ENV NODE_OPTIONS="--max-old-space-size=4096"$|ENV NODE_OPTIONS="--max-old-space-size=6144"|' Dockerfile
+
       - name: Build image
         run: docker build --build-arg USE_SLIM=true -t losus-owui:ci .
 
