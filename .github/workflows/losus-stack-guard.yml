@@ -1,0 +1,33 @@
+# Fails any push or PR whose Losus commits break the stack rules in .losus/stack.json:
+# package code in the fork, unapproved upstream files, missing "losus:" prefix,
+# merge commits, unsquashed fixups, manifest drift, or a fork that grew too large.
+# This catches commits made with --no-verify or without the local hooks installed.
+
+name: Losus stack guard
+
+on:
+  push:
+    branches: ['losus/main', 'upgrade/**']
+  pull_request:
+    branches: ['losus/main']
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream tags
+        run: |
+          git remote add upstream https://github.com/open-webui/open-webui.git
+          git fetch upstream --tags --force --quiet
+
+      - name: Check stack
+        run: |
+          set -o pipefail
+          python3 scripts/losus/stack.py check --format md | tee -a "$GITHUB_STEP_SUMMARY"

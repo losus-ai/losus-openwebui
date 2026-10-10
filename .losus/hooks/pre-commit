@@ -1,0 +1,3 @@
+#!/bin/sh
+# Losus: block commits that touch package code or unapproved upstream files
+exec python3 scripts/losus/stack.py precommit
