@@ -93,6 +93,16 @@
         "package-lock.json",
         "package.json"
       ]
+    },
+    {
+      "subject": "losus: bump @losus-ai/ui to 0.0.4 and refresh the host chat list when Roster moves a chat",
+      "purpose": "Keep the pinned @losus-ai/ui current (0.0.4: projects, the agent picker and the left-panel arrangement), and let the package tell the host's sidebar that a chat moved, by one event listener on the existing svelte:window, so the host's chat list refreshes. No product code; all behavior ships in the npm package.",
+      "upstreamable": false,
+      "paths": [
+        "package-lock.json",
+        "package.json",
+        "src/lib/components/layout/Sidebar.svelte"
+      ]
     }
   ]
 }
