@@ -1146,6 +1146,7 @@
 	}}
 	on:pointerup={resizeEndHandler}
 	on:pointercancel={resizeEndHandler}
+	on:losus-chats-changed={initChatList}
 />
 
 {#if $config?.features?.enable_notifications}
