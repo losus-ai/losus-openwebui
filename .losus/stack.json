@@ -138,6 +138,15 @@
         "backend/open_webui/main.py",
         "backend/open_webui/utils/losus_guard.py"
       ]
+    },
+    {
+      "subject": "losus: use @losus-ai/roster-ui 0.2.0 (project Tasks list, document viewer, in-place chat reload)",
+      "purpose": "Take @losus-ai/roster-ui 0.2.0 (project Tasks list with compact cards, in-app document viewer, Drive folder link, in-place chat reload after a task is resolved): the pin in package.json and the lockfile only. No product code; all behavior ships in the npm package. On conflict keep upstream's package.json and re-pin.",
+      "upstreamable": false,
+      "paths": [
+        "package-lock.json",
+        "package.json"
+      ]
     }
   ]
 }
