@@ -88,3 +88,28 @@ async def check_chat(user_id: str, chat_id: str, sent_folder_id: str | None, is_
     if not is_new and chat_id:
         folder_id = await Chats.get_chat_folder_id(chat_id, user_id)
     await check(folder_id, models)
+
+
+# ---- Roster: ask the caller's open chat page to re-read the chat --------------------------------------------------------
+# Roster appends a message to a chat on the server (for example "Task #7 is resolved"). The open page only knows what it has
+# loaded, so it is told to read the chat again, which upstream's chat page already does on a `chat:reload` event, with no
+# page refresh. Only the chat's owner can ask, and the event goes only to that owner's own sessions.
+from fastapi import APIRouter, Depends  # noqa: E402
+
+from open_webui.utils.auth import get_verified_user  # noqa: E402
+
+router = APIRouter()
+
+
+@router.post('/chats/{chat_id}/reload')
+async def reload_chat(chat_id: str, user=Depends(get_verified_user)) -> dict:
+    from open_webui.socket.main import sio
+
+    if not await Chats.get_chat_by_id_and_user_id(chat_id, user.id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Chat not found')
+    await sio.emit(
+        'events',
+        {'chat_id': chat_id, 'message_id': None, 'data': {'type': 'chat:reload'}},
+        room=f'user:{user.id}',
+    )
+    return {'ok': True}
