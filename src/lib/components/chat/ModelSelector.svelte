@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { models, pinnedModels, settings, user } from '$lib/stores';
+	import { chatId, models, pinnedModels, selectedFolder, settings, user } from '$lib/stores';
+	import { getChatById } from '$lib/apis/chats';
+	import { getFolderById } from '$lib/apis/folders';
 	import { getContext } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import Selector from './ModelSelector/Selector.svelte';
@@ -45,6 +47,27 @@
 		await updateUserSettings(localStorage.token, { ui: { pinnedModels: $settings.pinnedModels } });
 	};
 
+	// Losus: in a project locked to some agents, list only those. The server enforces it; this only mirrors it.
+	let losusAllowed: string[] | null = null;
+	const losusResolve = async (folder, id) => {
+		if (!folder && id) {
+			const chat = await getChatById(localStorage.token, id).catch(() => null);
+			folder = chat?.folder_id ? await getFolderById(localStorage.token, chat.folder_id).catch(() => null) : null;
+		}
+		for (let i = 0; folder && i < 8; i++) {
+			if (!folder.parent_id) {
+				losusAllowed = folder.data?.losus_locked ? (folder.data.model_ids ?? null) : null;
+				return;
+			}
+			folder = await getFolderById(localStorage.token, folder.parent_id).catch(() => null);
+		}
+		losusAllowed = null;
+	};
+	$: losusResolve($selectedFolder, $chatId);
+	$: if (losusAllowed && selectedModels.some((id) => !losusAllowed.includes(id))) {
+		selectedModels = [...losusAllowed];
+	}
+
 	$: if (selectedModels.length > 0 && $models.length > 0) {
 		const _selectedModels = selectedModels.map((model) =>
 			$models.map((m) => m.id).includes(model) ? model : ''
@@ -68,7 +91,7 @@
 					bind:this={selector}
 					id="model"
 					placeholder={$i18n.t('Select a model')}
-					items={$models.map((model) => ({
+					items={$models.filter((model) => !losusAllowed || losusAllowed.includes(model.id)).map((model) => ({
 						value: model.id,
 						label: resolveLocalizedModelName(model, $i18n.language),
 						model: model
