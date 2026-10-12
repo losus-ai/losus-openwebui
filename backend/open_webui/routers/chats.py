@@ -41,6 +41,7 @@ from open_webui.socket.main import get_event_emitter
 from open_webui.tasks import get_response_streams_by_chat_id, has_active_tasks, stop_item_tasks
 from open_webui.utils.access_control import filter_allowed_access_grants, has_permission
 from open_webui.utils.access_control.folders import has_folder_write_access
+from open_webui.utils import losus_guard
 from open_webui.utils.auth import bearer_security, get_admin_user, get_current_user, get_verified_user
 from open_webui.utils.chat_fork import build_fork_history
 from open_webui.utils.context_compaction import compact_chat_branch, get_chat_context_usage
@@ -830,6 +831,7 @@ async def create_new_chat(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ERROR_MESSAGES.NOT_FOUND,
         )
+    await losus_guard.check(form_data.folder_id, (form_data.chat or {}).get('models') or [])
 
     try:
         chat = await Chats.insert_new_chat(str(uuid4()), user.id, form_data, db=db)
@@ -861,6 +863,9 @@ async def import_chats(
     db: AsyncSession = Depends(get_async_session),
 ):
     await require_chat_import_permission(request, user, db)
+
+    for item in form_data.chats:
+        await losus_guard.check(item.folder_id, (item.chat or {}).get('models') or [])
 
     try:
         chats = await Chats.import_chats(user.id, form_data.chats, db=db)
@@ -1848,6 +1853,8 @@ async def fork_chat_by_id(
     if folder_id is not None and not await has_folder_write_access(user.id, folder_id, db=db):
         folder_id = None
 
+    await losus_guard.check(folder_id, (updated_chat or {}).get('models') or [])
+
     fork = await Chats.insert_new_chat(
         str(uuid4()),
         user.id,
@@ -1887,6 +1894,7 @@ async def clone_chat_by_id(
 
     chat = await Chats.get_chat_by_id_and_user_id(id, user.id, db=db)
     if chat:
+        await losus_guard.check(chat.folder_id, (chat.chat or {}).get('models') or [])
         updated_chat = {
             **chat.chat,
             'originalChatId': chat.id,
@@ -2250,6 +2258,7 @@ async def update_chat_folder_id_by_id(
                 detail=ERROR_MESSAGES.NOT_FOUND,
             )
 
+        await losus_guard.check(form_data.folder_id, (chat.chat or {}).get('models') or [])
         chat = await Chats.update_chat_folder_id_by_id_and_user_id(id, user.id, form_data.folder_id, db=db)
         await publish_event(
             request,

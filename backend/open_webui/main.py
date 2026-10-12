@@ -217,6 +217,7 @@ from open_webui.tasks import (
 from open_webui.utils import logger
 from open_webui.utils.access_control import has_permission
 from open_webui.utils.access_control.folders import has_folder_write_access
+from open_webui.utils import losus_guard
 from open_webui.utils.actions import chat_action as chat_action_handler
 from open_webui.utils.asgi_middleware import AppHTTPMiddleware
 from open_webui.utils.audit import AuditLevel, AuditLoggingMiddleware
@@ -1408,6 +1409,9 @@ async def chat_completion(
                             detail=ERROR_MESSAGES.DEFAULT(),
                         )
 
+            await losus_guard.check_chat(
+                user.id, chat_id, metadata.get('folder_id'), is_new_chat, [e.get('model_id') for e in message_ids]
+            )
             if is_saved_chat_id(chat_id):
                 if is_new_chat:
                     # The chat created below is persisted with this folder_id.
@@ -2121,6 +2125,7 @@ async def chat_completed(request: Request, form_data: dict, user=Depends(get_ver
     """Deprecated: outlet filters now run inline during chat completion.
     Kept for backward compatibility with external integrations."""
     await verify_chat_ownership(form_data.get('chat_id'), user)
+    await losus_guard.check_chat(user.id, form_data.get('chat_id') or '', None, False, [form_data.get('model')])
 
     try:
         model_item = form_data.pop('model_item', {})
@@ -2139,6 +2144,7 @@ async def chat_completed(request: Request, form_data: dict, user=Depends(get_ver
 @app.post('/api/chat/actions/{action_id}')
 async def chat_action(request: Request, action_id: str, form_data: dict, user=Depends(get_verified_user)):
     await verify_chat_ownership(form_data.get('chat_id'), user)
+    await losus_guard.check_chat(user.id, form_data.get('chat_id') or '', None, False, [form_data.get('model')])
 
     try:
         model_item = form_data.pop('model_item', {})
