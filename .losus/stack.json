@@ -117,6 +117,18 @@
         "src/lib/components/chat/Chat.svelte",
         "src/lib/components/chat/ModelSelector.svelte"
       ]
+    },
+    {
+      "subject": "losus: use @losus-ai/roster-ui 0.1.0 (the renamed package: tray, documents, chat actions)",
+      "purpose": "Follow the package rename from @losus-ai/ui to @losus-ai/roster-ui and take 0.1.0: change the one import in Sidebar.svelte and the pin and lockfile in package.json, and update the fork notice and the fork-stack skill text (kept identical to the losus-roster copy). No product code; all behavior ships in the npm package. On conflict keep upstream's Sidebar.svelte and re-add only the import and the wrapper.",
+      "upstreamable": false,
+      "paths": [
+        ".agents/skills/losus-fork-stack/SKILL.md",
+        "LOSUS_FORK_NOTICE.md",
+        "package-lock.json",
+        "package.json",
+        "src/lib/components/layout/Sidebar.svelte"
+      ]
     }
   ]
 }
