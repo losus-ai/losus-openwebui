@@ -129,6 +129,15 @@
         "package.json",
         "src/lib/components/layout/Sidebar.svelte"
       ]
+    },
+    {
+      "subject": "losus: ask the open chat page to reload in place when Roster appends a message",
+      "purpose": "Roster appends a message to a chat on the server (for example \"Task #7 is resolved\"), and the open chat page only knows what it has loaded. losus_guard.py gains a small router, POST /api/v1/losus/chats/{id}/reload, that emits upstream's own chat:reload socket event to the chat owner's sessions so the page re-reads the chat in place, and main.py includes that router with one line. Only the chat's owner can ask. On conflict keep upstream's main.py and re-add the one include_router line.",
+      "upstreamable": false,
+      "paths": [
+        "backend/open_webui/main.py",
+        "backend/open_webui/utils/losus_guard.py"
+      ]
     }
   ]
 }
