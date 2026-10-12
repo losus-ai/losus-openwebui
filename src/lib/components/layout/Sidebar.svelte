@@ -126,7 +126,7 @@
 	import ConfirmDialog from '../common/ConfirmDialog.svelte';
 	import MoreHorizontalIcon from './Sidebar/icons/MoreHorizontal.svelte';
 	import MobileSwipePanel from '../common/MobileSwipePanel.svelte';
-	import { LosusAgents } from '@losus-ai/ui';
+	import { LosusAgents } from '@losus-ai/roster-ui';
 
 	const DEFAULT_PINNED_ITEMS = ['notes', 'workspace'];
 

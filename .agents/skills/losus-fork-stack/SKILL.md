@@ -73,4 +73,4 @@ Done when the workflow reaches the `fork-promotion` approval with a passing stac
 ## Example
 
 User: "Add an Approvals link under the Agents section in the sidebar."
-→ The link markup goes in `@losus-ai/ui` (`LosusAgents.svelte`) in `losus-roster`. Release a new version, then in the fork bump `@losus-ai/ui` in `package.json`, fold that into the dependency-pin commit with a fixup, run `stack.py sync` and `stack.py check`, and open a PR. `Sidebar.svelte` doesn't change.
+→ The link markup goes in `@losus-ai/roster-ui` (`LosusAgents.svelte`) in `losus-roster`. Release a new version, then in the fork bump `@losus-ai/roster-ui` in `package.json`, fold that into the dependency-pin commit with a fixup, run `stack.py sync` and `stack.py check`, and open a PR. `Sidebar.svelte` doesn't change.
