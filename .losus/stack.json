@@ -26,7 +26,9 @@
     "src/lib/components/losus/**",
     "backend/open_webui/main.py",
     "backend/open_webui/routers/chats.py",
-    "backend/open_webui/utils/losus_guard.py"
+    "backend/open_webui/utils/losus_guard.py",
+    "src/lib/components/chat/ModelSelector.svelte",
+    "src/lib/components/chat/Chat.svelte"
   ],
   "denied_paths": [
     "packages/**",
@@ -102,6 +104,18 @@
         "package-lock.json",
         "package.json",
         "src/lib/components/layout/Sidebar.svelte"
+      ]
+    },
+    {
+      "subject": "losus: enforce agent-limited projects (server guard and model picker)",
+      "purpose": "Roster's agent-limited projects. backend/open_webui/utils/losus_guard.py asks Roster's runtime (LOSUS_RUNTIME_URL; off when unset) which agents a top-level folder allows, and main.py chat_completion and chats.py /new and /{id}/folder call it, returning 403 agent_not_allowed. ModelSelector.svelte lists only the allowed agents in a locked project and Chat.svelte stops writing the picker's model back into a locked folder. On conflict keep upstream and re-add the one call per site.",
+      "upstreamable": false,
+      "paths": [
+        "backend/open_webui/main.py",
+        "backend/open_webui/routers/chats.py",
+        "backend/open_webui/utils/losus_guard.py",
+        "src/lib/components/chat/Chat.svelte",
+        "src/lib/components/chat/ModelSelector.svelte"
       ]
     }
   ]
