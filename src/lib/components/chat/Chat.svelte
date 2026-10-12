@@ -1504,6 +1504,7 @@
 	const savedModelIds = async () => {
 		if (
 			$selectedFolder &&
+			!$selectedFolder?.data?.losus_locked &&
 			selectedModels.filter((modelId) => modelId !== '').length > 0 &&
 			!equal($selectedFolder?.data?.model_ids, selectedModels)
 		) {
