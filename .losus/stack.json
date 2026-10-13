@@ -147,6 +147,14 @@
         "package-lock.json",
         "package.json"
       ]
+    },
+    {
+      "subject": "losus: fall back to job summary when issues are disabled on the fork",
+      "purpose": "The fork has Issues disabled, so the rebase workflow's conflict step died on `gh issue create` with an unexplained exit 1 and hid that the cause was a rebase conflict. The step now checks has_issues first and, when disabled, emits an ::error annotation pointing at the job summary (which already carries the conflict report) and fails the run on purpose so the failure email still notifies. Workflow file only. On conflict keep upstream's file layout and re-add the has_issues check at the top of the conflict step.",
+      "upstreamable": false,
+      "paths": [
+        ".github/workflows/losus-upstream-rebase.yml"
+      ]
     }
   ]
 }

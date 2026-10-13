@@ -101,6 +101,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TARGET: ${{ steps.rebase.outputs.target }}
         run: |
+          # Issues can be disabled on the fork. The report is already in the job summary
+          # ("Write job summary" above), so point at it and fail the run on purpose: a red
+          # run is what notifies us that the stack needs a manual rebase.
+          if [ "$(gh api "repos/$GITHUB_REPOSITORY" --jq .has_issues)" != "true" ]; then
+            echo "::error title=Upstream rebase blocked: $TARGET::Issues are disabled on this repo; see the job summary for the conflicting files and resolve steps."
+            exit 1
+          fi
           gh label create upstream-rebase --color B60205 --force >/dev/null
           title="Upstream rebase blocked: $TARGET"
           num="$(gh issue list --state open --label upstream-rebase \
