@@ -155,6 +155,14 @@
       "paths": [
         ".github/workflows/losus-upstream-rebase.yml"
       ]
+    },
+    {
+      "subject": "losus: squash fixup commits during the upstream rebase",
+      "purpose": "scripts/losus/rebase-upstream.sh now runs `git rebase -i --autosquash` (with GIT_SEQUENCE_EDITOR=true so no editor opens) so a `fixup!` commit is folded into the commit it names before the stack check, which rejects an unsquashed fixup. Tooling only; no product code. On conflict keep both sides: the rebase line must keep -i --autosquash.",
+      "upstreamable": false,
+      "paths": [
+        "scripts/losus/rebase-upstream.sh"
+      ]
     }
   ]
 }

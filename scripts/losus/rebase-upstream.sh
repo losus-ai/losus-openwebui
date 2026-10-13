@@ -56,12 +56,15 @@ STACK_SIZE="$(git rev-list --count "$BASE..$FORK_BRANCH")"
 log "Rebasing $STACK_SIZE Losus commit(s) from $BASE onto $TARGET as $BRANCH"
 
 # 4. Rebase. rerere replays conflict resolutions you've made before;
-#    --empty=drop removes commits that upstream has already absorbed.
+#    --empty=drop removes commits that upstream has already absorbed;
+#    --autosquash folds any `fixup!`/`squash!` commits into the commit they name (it only takes
+#    effect with -i, and GIT_SEQUENCE_EDITOR=true accepts the todo list as generated), so a fixup
+#    can never reach `stack.py check`, which rejects an unsquashed one.
 git config rerere.enabled true      # applies to every rebase step, not just the first
 git config rerere.autoupdate true   # stage files that rerere resolves
 git checkout -q -B "$BRANCH" "$FORK_BRANCH"
-export GIT_EDITOR=true
-git rebase --empty=drop --onto "$TARGET" "$BASE" >/dev/null 2>&1 || true
+export GIT_EDITOR=true GIT_SEQUENCE_EDITOR=true
+git rebase -i --autosquash --empty=drop --onto "$TARGET" "$BASE" >/dev/null 2>&1 || true
 
 # 5. Resolve what can be resolved automatically, stop on anything else
 REASON=""
@@ -81,7 +84,7 @@ report_conflict() {
     echo '```bash'
     echo "git fetch origin && git fetch upstream --tags"
     echo "git checkout -B $BRANCH origin/$FORK_BRANCH"
-    echo "git -c rerere.enabled=true rebase --empty=drop --onto $TARGET $BASE"
+    echo "GIT_SEQUENCE_EDITOR=true git -c rerere.enabled=true rebase -i --autosquash --empty=drop --onto $TARGET $BASE"
     echo "# fix conflicts, git add, git rebase --continue"
     echo "git push --force-with-lease origin $BRANCH"
     echo '```'
