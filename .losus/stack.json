@@ -188,6 +188,14 @@
       "paths": [
         ".github/workflows/losus-upstream-rebase.yml"
       ]
+    },
+    {
+      "subject": "losus: make rerere-sync.sh read the shared rr-cache from a worktree",
+      "purpose": "scripts/losus/rerere-sync.sh built its cache path from `git rev-parse --absolute-git-dir`, which in a linked worktree is .git/worktrees/<name>/, so a `push` from a worktree looked in an always-empty directory and reported \"already up to date\" or \"nothing to publish\" while the resolutions git had recorded sat in the shared .git/rr-cache. It now uses `git rev-parse --path-format=absolute --git-common-dir` (git 2.31 or later) for the cache and for the object writes. Behavior in a normal checkout is unchanged. Tooling only; no product code. On conflict keep the common-dir lookup.",
+      "upstreamable": false,
+      "paths": [
+        "scripts/losus/rerere-sync.sh"
+      ]
     }
   ]
 }

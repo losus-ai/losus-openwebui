@@ -12,8 +12,11 @@ set -euo pipefail
 MODE="${1:-pull}"
 REMOTE="${RERERE_REMOTE:-origin}"
 BRANCH="${RERERE_BRANCH:-losus/rr-cache}"
-GIT_DIR_ABS="$(git rev-parse --absolute-git-dir)"
-CACHE="$GIT_DIR_ABS/rr-cache"
+# Use the shared git directory, not this worktree's own one: git keeps rr-cache (and the objects and
+# refs this script writes) in the common directory, so from a linked worktree --absolute-git-dir
+# would point at .git/worktrees/<name>/ and the cache there is always empty.
+GIT_COMMON_DIR="$(git rev-parse --path-format=absolute --git-common-dir)"
+CACHE="$GIT_COMMON_DIR/rr-cache"
 
 pull() {
   mkdir -p "$CACHE"
@@ -32,8 +35,8 @@ push() {
   fi
   local idx; idx="$(mktemp)"; rm -f "$idx"
   local tree parent commit
-  tree="$(cd "$CACHE" && GIT_INDEX_FILE="$idx" git --git-dir="$GIT_DIR_ABS" --work-tree=. add -A . \
-          && GIT_INDEX_FILE="$idx" git --git-dir="$GIT_DIR_ABS" write-tree)"
+  tree="$(cd "$CACHE" && GIT_INDEX_FILE="$idx" git --git-dir="$GIT_COMMON_DIR" --work-tree=. add -A . \
+          && GIT_INDEX_FILE="$idx" git --git-dir="$GIT_COMMON_DIR" write-tree)"
   rm -f "$idx"
   parent="$(git rev-parse -q --verify "refs/remotes/$REMOTE/$BRANCH" || true)"
   if [[ -n "$parent" && "$(git rev-parse "$parent^{tree}")" == "$tree" ]]; then
