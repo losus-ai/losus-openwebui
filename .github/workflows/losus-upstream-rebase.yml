@@ -34,7 +34,10 @@ env:
 
 jobs:
   rebase:
-    runs-on: ubuntu-latest
+    # Pinned rather than `ubuntu-latest` (2026-11-22): the label moved to Ubuntu 26.04
+    # (https://github.com/actions/runner-images/issues/14748) and the runs that day passed on it.
+    # Bump deliberately once the next image is verified compatible.
+    runs-on: ubuntu-26.04
     outputs:
       status: ${{ steps.rebase.outputs.status }}
       base: ${{ steps.rebase.outputs.base }}
@@ -121,7 +124,10 @@ jobs:
   verify:
     needs: rebase
     if: needs.rebase.outputs.status == 'clean'
-    runs-on: ubuntu-latest
+    # Pinned rather than `ubuntu-latest` (2026-11-22): the label moved to Ubuntu 26.04
+    # (https://github.com/actions/runner-images/issues/14748) and the runs that day passed on it.
+    # Bump deliberately once the next image is verified compatible.
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -159,7 +165,10 @@ jobs:
 
   promote:
     needs: [rebase, verify]
-    runs-on: ubuntu-latest
+    # Pinned rather than `ubuntu-latest` (2026-11-22): the label moved to Ubuntu 26.04
+    # (https://github.com/actions/runner-images/issues/14748) and the runs that day passed on it.
+    # Bump deliberately once the next image is verified compatible.
+    runs-on: ubuntu-26.04
     environment: fork-promotion # required reviewers approve here
     steps:
       - uses: actions/checkout@v7

@@ -171,6 +171,15 @@
       "paths": [
         ".github/workflows/losus-upstream-rebase.yml"
       ]
+    },
+    {
+      "subject": "losus: pin the workflow runners to ubuntu-26.04",
+      "purpose": "`ubuntu-latest` moved to Ubuntu 26.04 on 2026-10-19 (runner-images#14748) and would move again on GitHub's schedule with no change in this repo. The four runs-on lines in the two losus-* workflows now name ubuntu-26.04, the image the 2026-11-22 runs passed on, each with a comment that says to bump it deliberately. Workflow files only. On conflict keep upstream's file layout and keep every runs-on pinned.",
+      "upstreamable": false,
+      "paths": [
+        ".github/workflows/losus-stack-guard.yml",
+        ".github/workflows/losus-upstream-rebase.yml"
+      ]
     }
   ]
 }

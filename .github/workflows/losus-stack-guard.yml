@@ -16,7 +16,10 @@ permissions:
 
 jobs:
   guard:
-    runs-on: ubuntu-latest
+    # Pinned rather than `ubuntu-latest` (2026-11-22): the label moved to Ubuntu 26.04
+    # (https://github.com/actions/runner-images/issues/14748) and the runs that day passed on it.
+    # Bump deliberately once the next image is verified compatible.
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
         with:
