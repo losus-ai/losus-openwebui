@@ -180,6 +180,14 @@
         ".github/workflows/losus-stack-guard.yml",
         ".github/workflows/losus-upstream-rebase.yml"
       ]
+    },
+    {
+      "subject": "losus: fail a blocked rebase in its own step when Issues are disabled",
+      "purpose": "With Issues disabled on the fork, the rebase workflow's \"Open or update conflict issue\" step exited 1 on purpose so the red run would send the failure email, which made the failing step's name misleading. That step now writes a ::warning, records blocked_without_issue=true and exits 0; a final step named \"Rebase blocked: resolve by hand\" fails the run only in that case, so the failure email still arrives. With Issues enabled nothing changes: the issue is opened or updated and the run is green. Workflow file only. On conflict keep upstream's file layout, keep the id on the conflict step and the final step's if condition.",
+      "upstreamable": false,
+      "paths": [
+        ".github/workflows/losus-upstream-rebase.yml"
+      ]
     }
   ]
 }
