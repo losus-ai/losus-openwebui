@@ -205,13 +205,18 @@ jobs:
           TAG: ${{ steps.promote.outputs.tag }}
           TARGET: ${{ needs.rebase.outputs.target }}
         run: |
+          # This checkout comes from the fork, which has no upstream release tags, so
+          # "$TARGET..$TAG" below cannot resolve $TARGET (it failed with exit 128 on v0.13.4).
+          # Fetch just that tag from upstream; the commit is already in the history.
+          git fetch --no-tags --quiet "$UPSTREAM_URL" "refs/tags/$TARGET:refs/tags/$TARGET" \
+            || echo "::warning title=Upstream tag not fetched: $TARGET::The release notes will not list the stack commits."
           notes="$(mktemp)"
           roster_ui="$(git show "$TAG:package.json" | jq -r '(.dependencies // {}) + (.devDependencies // {}) | .["@losus-ai/roster-ui"] // "not pinned"')"
           {
             echo "Open WebUI $TARGET with the Losus stack."
             echo
             echo "**Stack**"
-            git log --reverse --format='- %s' "$TARGET..$TAG"
+            git log --reverse --format='- %s' "$TARGET..$TAG" || echo "- (commit list unavailable: $TARGET tag not found)"
             echo
             echo "**Packages**"
             echo "- @losus-ai/roster-ui $roster_ui"

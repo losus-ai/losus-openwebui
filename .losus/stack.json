@@ -163,6 +163,14 @@
       "paths": [
         "scripts/losus/rebase-upstream.sh"
       ]
+    },
+    {
+      "subject": "losus: fetch the upstream tag before building the release notes",
+      "purpose": "The promote job's release step ran `git log \"$TARGET..$TAG\"` in a checkout of the fork, which has no upstream release tags, so it failed with exit 128 on v0.13.4 and the run ended red after the promotion had already succeeded. The step now fetches just the $TARGET tag from UPSTREAM_URL first, and falls back to a placeholder line (with a ::warning) if the tag cannot be fetched. Workflow file only. On conflict keep upstream's file layout and keep the fetch at the top of the release step's script.",
+      "upstreamable": false,
+      "paths": [
+        ".github/workflows/losus-upstream-rebase.yml"
+      ]
     }
   ]
 }
