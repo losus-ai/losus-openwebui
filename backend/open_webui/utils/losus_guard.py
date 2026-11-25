@@ -44,17 +44,44 @@ async def _root(folder_id: str) -> str | None:
     return None
 
 
+# One long-lived client: calls reuse a connection instead of opening and resolving a fresh one each time, which on the
+# Spark stalled for 1 to 3 s now and then (found 2026-11-24). One retry covers a stale or dropped connection. If both tries
+# fail the caller still fails closed (the cached answer, or a denial when there is none).
+_client: httpx.AsyncClient | None = None
+ATTEMPTS = 2
+
+
+def _http() -> httpx.AsyncClient:
+    global _client
+    if _client is None or _client.is_closed:
+        _client = httpx.AsyncClient(
+            timeout=httpx.Timeout(3.0, connect=4.0),
+            limits=httpx.Limits(max_keepalive_connections=10, keepalive_expiry=30.0),
+        )
+    return _client
+
+
+async def _fetch(root: str) -> dict:
+    headers = {'Authorization': f'Bearer {GUARD_TOKEN}'} if GUARD_TOKEN else {}
+    for attempt in range(1, ATTEMPTS + 1):
+        try:
+            r = await _http().get(f'{RUNTIME_URL}/losus/api/guard/projects/{root}', headers=headers)
+            r.raise_for_status()  # an HTTP error status is an answer, not a transport fault: it is not retried
+            return r.json()
+        except httpx.TransportError as exc:
+            log.warning('losus guard: runtime call %d of %d failed (%s)', attempt, ATTEMPTS, type(exc).__name__)
+            if attempt == ATTEMPTS:
+                raise
+    raise AssertionError('unreachable')
+
+
 async def _allowed(root: str) -> list[str] | None:
     """The agents allowed in project `root`, or None when it is not agent-limited."""
     hit = _cache.get(root)
     if hit and time.monotonic() - hit[0] < TTL:
         return hit[1]
     try:
-        headers = {'Authorization': f'Bearer {GUARD_TOKEN}'} if GUARD_TOKEN else {}
-        async with httpx.AsyncClient(timeout=3.0) as client:
-            r = await client.get(f'{RUNTIME_URL}/losus/api/guard/projects/{root}', headers=headers)
-        r.raise_for_status()
-        body = r.json()
+        body = await _fetch(root)
         agents = list(body.get('agents') or []) if body.get('limited') else None
     except Exception as exc:
         log.warning('losus guard: runtime unavailable (%s)', type(exc).__name__)

@@ -212,6 +212,14 @@
         "backend/open_webui/routers/chats.py",
         "backend/open_webui/utils/losus_guard.py"
       ]
+    },
+    {
+      "subject": "losus: reuse one connection to the runtime in the guard, with one retry",
+      "purpose": "The guard opened a new HTTP client, and so a new name lookup and connection, for every call to the Roster runtime. On the Spark that intermittently stalled for 1 to 3 s, and with no cached answer for a project a 3 s ConnectTimeout denied a chat in a limited project with 'The project access service is unavailable' (found 2026-11-24; the root cause of the stall is not known). losus_guard now keeps one long-lived keep-alive client with a 4 s connect window and retries once on a transport error; an HTTP error status is not retried. If both tries fail it still fails closed: the cached answer, or a denial when there is none. Only losus_guard.py changes. On conflict keep the shared client, the single retry and the fail-closed result.",
+      "upstreamable": false,
+      "paths": [
+        "backend/open_webui/utils/losus_guard.py"
+      ]
     }
   ]
 }
