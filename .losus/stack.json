@@ -114,7 +114,6 @@
         "backend/open_webui/main.py",
         "backend/open_webui/routers/chats.py",
         "backend/open_webui/utils/losus_guard.py",
-        "src/lib/components/chat/Chat.svelte",
         "src/lib/components/chat/ModelSelector.svelte"
       ]
     },
@@ -195,6 +194,14 @@
       "upstreamable": false,
       "paths": [
         "scripts/losus/rerere-sync.sh"
+      ]
+    },
+    {
+      "subject": "losus: check the guard's route inventory in the rebase verify job",
+      "purpose": "A route added by an upstream release could start or write into a chat without calling losus_guard. The verify job now checks out losus-ai/losus-roster (scripts only, using LOSUS_BOT_TOKEN) and runs check-guard-routes.py against the built image, so a route missing from scripts/guard-routes.json fails the run and blocks promotion. Workflow file only; review and gap entries do not fail it. On conflict keep upstream's file layout and keep both new steps between the sidebar-hook check and the /health smoke test.",
+      "upstreamable": false,
+      "paths": [
+        ".github/workflows/losus-upstream-rebase.yml"
       ]
     }
   ]

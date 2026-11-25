@@ -162,6 +162,25 @@ jobs:
             "grep -rqs 'sidebar-losus' /app/build" \
             || { echo "::error::Losus sidebar hook not found in the built frontend"; exit 1; }
 
+      # A route added upstream could start or write into a chat without calling the guard. The check
+      # lists every chat-related write route in the built image and fails on one that
+      # scripts/guard-routes.json (in losus-roster, the single source of truth) does not classify.
+      # losus-roster is private, so the checkout uses LOSUS_BOT_TOKEN, which needs read access to it.
+      - name: Check out the route inventory (losus-roster)
+        uses: actions/checkout@v7
+        with:
+          repository: losus-ai/losus-roster
+          ref: main
+          path: roster
+          token: ${{ secrets.LOSUS_BOT_TOKEN }}
+          sparse-checkout: scripts
+
+      - name: Check the guard's route inventory
+        run: |
+          python3 roster/scripts/check-guard-routes.py \
+            --image losus-owui:ci \
+            --inventory roster/scripts/guard-routes.json
+
       - name: Smoke test /health
         run: |
           docker run -d --name owui -p 8080:8080 -e WEBUI_SECRET_KEY=ci-only losus-owui:ci
