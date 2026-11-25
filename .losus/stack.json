@@ -228,6 +228,15 @@
       "paths": [
         "backend/open_webui/utils/losus_guard.py"
       ]
+    },
+    {
+      "subject": "losus: bump @losus-ai/roster-ui to 0.2.2",
+      "purpose": "The Roster UI lives in the @losus-ai/roster-ui npm package that the fork pins. 0.2.2 (with roster-client 0.2.2) carries two UI fixes made after 0.2.1: the project pane no longer covers the chat when the sidebar is collapsed, and a project's folder page no longer lists its chats twice. This commit moves the exact pin in package.json from 0.2.1 to 0.2.2 and refreshes package-lock.json (npm install --package-lock-only --ignore-scripts, node 22); the lockfile integrity matches the tarballs tested before publishing. No source file changes. On conflict keep the 0.2.2 pin and re-run the lockfile refresh in node 22; do not hand-edit package-lock.json.",
+      "upstreamable": false,
+      "paths": [
+        "package-lock.json",
+        "package.json"
+      ]
     }
   ]
 }
