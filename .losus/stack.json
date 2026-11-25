@@ -220,6 +220,14 @@
       "paths": [
         "backend/open_webui/utils/losus_guard.py"
       ]
+    },
+    {
+      "subject": "losus: give a guard refusal a message the app can show",
+      "purpose": "A guard refusal is a 403 whose detail was {code, reason}. The app's error helper (getErrorMessage in src/lib/apis/openai/index.ts) shows only a string it finds at detail.message, detail.error and similar places, so a policy refusal fell back to the toast 'Server connection failed' (found 2026-11-24 with the guard-refusals-on-screen walkthrough). losus_guard._deny now also returns message, set to the reason text, so the app shows 'X is not allowed in this project' with no frontend change. Only losus_guard.py changes. On conflict keep the message key in the detail.",
+      "upstreamable": false,
+      "paths": [
+        "backend/open_webui/utils/losus_guard.py"
+      ]
     }
   ]
 }

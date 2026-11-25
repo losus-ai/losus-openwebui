@@ -25,8 +25,11 @@ _cache: dict[str, tuple[float, list[str] | None]] = {}
 
 
 def _deny(reason: str) -> HTTPException:
+    # `message` is the string the app's error helper looks for (detail.message); without it the app falls back to
+    # "Server connection failed" for a policy refusal. `code` and `reason` stay for scripts and tests.
     return HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN, detail={'code': 'agent_not_allowed', 'reason': reason}
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail={'code': 'agent_not_allowed', 'reason': reason, 'message': reason},
     )
 
 
