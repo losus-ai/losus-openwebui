@@ -203,6 +203,15 @@
       "paths": [
         ".github/workflows/losus-upstream-rebase.yml"
       ]
+    },
+    {
+      "subject": "losus: guard the chat save and compact routes for agent-limited projects",
+      "purpose": "Two chat routes could use an agent that an agent-limited project does not allow: POST /api/v1/chats/{id} (the chat save) wrote the client's models and messages with no check, and POST /api/v1/chats/{id}/compact asked an unchecked model to summarize the chat. losus_guard.check_save now rejects, with 403 agent_not_allowed, any model or message a save adds or changes that the project's allow-list does not permit (stored messages are compared by id and not checked again), and compact_chat_by_id calls losus_guard.check on the chat's stored folder before the summary model runs. Two added lines in chats.py; the logic is in losus_guard.py. On conflict keep both calls, placed after the chat is loaded in the save route and after the model is chosen in the compact route.",
+      "upstreamable": false,
+      "paths": [
+        "backend/open_webui/routers/chats.py",
+        "backend/open_webui/utils/losus_guard.py"
+      ]
     }
   ]
 }

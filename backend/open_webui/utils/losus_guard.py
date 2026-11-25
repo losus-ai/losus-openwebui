@@ -90,6 +90,33 @@ async def check_chat(user_id: str, chat_id: str, sent_folder_id: str | None, is_
     await check(folder_id, models)
 
 
+def _saved_messages(chat: dict) -> list[dict]:
+    """Every message a save carries: the history map and the legacy list."""
+    found = list(((chat.get('history') or {}).get('messages') or {}).values())
+    found.extend(chat.get('messages') or [])
+    return [m for m in found if isinstance(m, dict)]
+
+
+def _message_models(message: dict) -> set[str]:
+    """The agents a message names: its own `model` and a user message's `models` list."""
+    named = set(message.get('models') or [])
+    named.add(message.get('model'))
+    return {m for m in named if isinstance(m, str) and m}
+
+
+async def check_save(chat_id: str, folder_id: str | None, stored_chat: dict, incoming: dict) -> None:
+    """A chat save (POST /chats/{id}): agents it adds must be allowed in the chat's stored project.
+
+    Only what is new or changed is checked, so a chat that already holds a since-removed agent can still be saved."""
+    if not RUNTIME_URL or not folder_id:
+        return
+    added = {m for m in incoming.get('models') or [] if isinstance(m, str) and m} - set(stored_chat.get('models') or [])
+    stored = await Chats.get_messages_map_by_chat_id(chat_id) or {}
+    for message in _saved_messages(incoming):
+        added |= _message_models(message) - _message_models(stored.get(message.get('id')) or {})
+    await check(folder_id, sorted(added))
+
+
 # ---- Roster: ask the caller's open chat page to re-read the chat --------------------------------------------------------
 # Roster appends a message to a chat on the server (for example "Task #7 is resolved"). The open page only knows what it has
 # loaded, so it is told to read the chat again, which upstream's chat page already does on a `chat:reload` event, with no

@@ -1410,6 +1410,7 @@ async def compact_chat_by_id(
     if not model_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='No model found for context compaction.')
 
+    await losus_guard.check(chat.folder_id, [model_id])
     result = await compact_chat_branch(request, user, chat, model_id, request.app.state.MODELS)
     result['context_usage'] = await get_chat_context_usage(chat, model_id)
     if result.get('compacted'):
@@ -1527,6 +1528,7 @@ async def update_chat_by_id(
                 )
             form_data.chat['title'] = title.strip()
     if chat:
+        await losus_guard.check_save(id, chat.folder_id, chat.chat or {}, form_data.chat or {})
         set_message_authors(form_data.chat, user)
         touch = 'history' in form_data.chat or 'messages' in form_data.chat
         chat = await Chats.update_chat_by_id(id, form_data.chat, db=db, touch=touch)
